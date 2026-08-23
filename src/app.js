@@ -186,7 +186,7 @@
         if (live && spinning) live.textContent = DESTS[e.currentIndex].name;
       }
     });
-    window.__wk = { wheel: wheel }; // test hook: lets automation drive the animation clock
+    window.__wk = { wheel: wheel, renderResult: renderResult }; // test hook for automation
   }
 
   function spin() {
