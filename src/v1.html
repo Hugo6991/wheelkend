@@ -1,0 +1,266 @@
+<title>三小時逃離上海</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F2F5F8; --card:#FFFFFF; --ink:#17233B; --muted:#5B677C;
+    --line:#DDE4EC; --accent:#D9482B; --hub:#17233B; --hub-text:#FFFFFF;
+    --chip:#EDF1F7; --map-bg:#E9EEF4; --ring:#C7D2E0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141A26; --card:#1D2534; --ink:#EDF1F7; --muted:#98A4B8;
+      --line:#313D52; --accent:#F06544; --hub:#EDF1F7; --hub-text:#17233B;
+      --chip:#28324A; --map-bg:#171F2E; --ring:#3A4763;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141A26; --card:#1D2534; --ink:#EDF1F7; --muted:#98A4B8;
+    --line:#313D52; --accent:#F06544; --hub:#EDF1F7; --hub-text:#17233B;
+    --chip:#28324A; --map-bg:#171F2E; --ring:#3A4763;
+  }
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    margin:0; padding:2rem 1rem 3rem; display:flex; flex-direction:column; align-items:center;
+  }
+  header{text-align:center; margin-bottom:1.2rem}
+  h1{
+    font-family:"Noto Serif TC","Noto Sans TC",serif; font-weight:900;
+    font-size:clamp(1.8rem,5vw,2.6rem); margin:0; letter-spacing:.06em; text-wrap:balance;
+  }
+  .sub{color:var(--muted); margin:.5rem 0 0; font-size:.95rem}
+  .stage{position:relative; width:min(88vw,400px); aspect-ratio:1; margin:1rem 0 .5rem}
+  .pointer{
+    position:absolute; top:-6px; left:50%; transform:translateX(-50%); z-index:3;
+    width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent;
+    border-top:26px solid var(--accent); filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));
+  }
+  #wheel{
+    width:100%; height:100%; display:block; cursor:pointer; border-radius:50%;
+    box-shadow:0 10px 30px rgba(23,35,59,.18);
+    transition:transform 4.2s cubic-bezier(.12,.8,.08,1);
+  }
+  .hint{color:var(--muted); font-size:.9rem; margin:.25rem 0 0}
+
+  /* ── 城市卡片 ── */
+  .card{
+    width:min(92vw,560px); margin-top:1.4rem; background:var(--card);
+    border:1px solid var(--line); border-radius:16px; padding:1.2rem 1.3rem 1.3rem;
+    box-shadow:0 8px 24px rgba(23,35,59,.10);
+    opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease;
+  }
+  .card.show{opacity:1; transform:none}
+  .card[hidden]{display:none}
+  .card-head{display:flex; align-items:flex-start; gap:.9rem}
+  .badge{
+    flex:none; width:56px; height:56px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:1.8rem;
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.35);
+  }
+  .head-text{flex:1; min-width:0}
+  .kicker{font-size:.8rem; letter-spacing:.18em; color:var(--muted)}
+  .city-row{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; margin-top:.1rem}
+  .city-name{font-family:"Noto Serif TC",serif; font-weight:900; font-size:1.9rem; color:var(--accent); line-height:1.1}
+  .chip{background:var(--chip); color:var(--ink); border-radius:999px; padding:.15rem .65rem; font-size:.8rem; white-space:nowrap}
+  .tagline{color:var(--muted); font-size:.92rem; margin-top:.3rem}
+  .seal{
+    flex:none; width:44px; height:44px; border-radius:8px; background:var(--accent); color:#fff;
+    font-family:"Noto Serif TC",serif; font-weight:900; font-size:1.5rem;
+    display:flex; align-items:center; justify-content:center; transform:rotate(6deg);
+    box-shadow:0 2px 6px rgba(0,0,0,.2);
+  }
+  .card-body{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.1rem}
+  @media (max-width:520px){ .card-body{grid-template-columns:1fr} }
+  .map-wrap{background:var(--map-bg); border-radius:12px; padding:.4rem; overflow:hidden}
+  .map-wrap svg{display:block; width:100%; height:auto}
+  .m-ring{fill:none; stroke:var(--ring); stroke-dasharray:3 4; stroke-width:1}
+  .m-dot{fill:var(--muted); opacity:.55}
+  .m-sh{fill:var(--ink)}
+  .m-target{fill:var(--accent)}
+  .m-route{stroke:var(--accent); stroke-width:1.6; stroke-dasharray:5 4; fill:none}
+  .m-label{fill:var(--ink); font-size:11px; font-weight:700}
+  .m-label-muted{fill:var(--muted); font-size:10px}
+  .spots h3{margin:.1rem 0 .5rem; font-size:.85rem; letter-spacing:.14em; color:var(--muted); font-weight:700}
+  .spots ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.45rem}
+  .spots li{display:flex; align-items:center; gap:.5rem; font-size:.95rem}
+  .spots li::before{content:""; flex:none; width:7px; height:7px; border-radius:50%; background:var(--accent); opacity:.8}
+
+  .list{
+    margin-top:2rem; width:min(92vw,560px); background:var(--card);
+    border:1px solid var(--line); border-radius:14px; padding:1.1rem 1.3rem;
+  }
+  .list h2{font-size:1rem; margin:0 0 .7rem; letter-spacing:.12em; color:var(--muted); font-weight:700}
+  .list ul{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:.45rem 1.4rem}
+  @media (max-width:480px){ .list ul{grid-template-columns:1fr} }
+  .list li{display:flex; justify-content:space-between; gap:.6rem; font-size:.95rem; border-bottom:1px dashed var(--line); padding-bottom:.35rem}
+  .list .t{color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums}
+  footer{color:var(--muted); font-size:.8rem; margin-top:1.6rem; text-align:center}
+
+  @media (prefers-reduced-motion: reduce){
+    #wheel{transition:transform .6s ease-out}
+    .card{transition:opacity .3s ease; transform:none}
+  }
+</style>
+
+<header>
+  <h1>三小時逃離上海</h1>
+  <p class="sub">以上海為圓心，高鐵／門到門約 3 小時內的週末去處。點轉盤，去哪交給命運。</p>
+</header>
+
+<div class="stage">
+  <div class="pointer"></div>
+  <svg id="wheel" viewBox="0 0 400 400" role="button" aria-label="點擊旋轉轉盤"></svg>
+</div>
+<p class="hint">點一下轉盤開始</p>
+
+<div id="card" class="card" hidden aria-live="polite"></div>
+
+<div class="list">
+  <h2>名單・上海出發參考交通時間</h2>
+  <ul id="legend"></ul>
+</div>
+
+<footer>時間與景點為參考資訊，出發前請再確認班次與開放時間。</footer>
+
+<script>
+const SH = {lon:121.47, lat:31.23};
+const DESTS = [
+  {name:"蘇州",   time:"高鐵約 30 分",   emoji:"🏯", lon:120.58, lat:31.30, tag:"園林、評彈與姑蘇慢生活", spots:["拙政園","平江路","虎丘","金雞湖夜景"]},
+  {name:"杭州",   time:"高鐵約 1 小時",  emoji:"🍵", lon:120.15, lat:30.27, tag:"西湖邊喝一杯龍井",       spots:["西湖","靈隱寺","西溪濕地"]},
+  {name:"無錫",   time:"高鐵約 45 分",   emoji:"🌸", lon:120.30, lat:31.57, tag:"太湖畔的黿頭渚與靈山",   spots:["黿頭渚","靈山大佛","清名橋古運河"]},
+  {name:"南京",   time:"高鐵約 1.5 小時", emoji:"🏛️", lon:118.80, lat:32.06, tag:"六朝古都的梧桐與城牆",   spots:["中山陵","夫子廟・秦淮河","玄武湖"]},
+  {name:"嘉興",   time:"高鐵約 40 分",   emoji:"🛶", lon:120.75, lat:30.75, tag:"南湖煙雨與一顆好粽子",   spots:["南湖","月河歷史街區","西塘（近郊）"]},
+  {name:"烏鎮",   time:"門到門約 1.5 小時", emoji:"🏮", lon:120.49, lat:30.74, tag:"枕水人家的西柵夜色",   spots:["西柵夜景","東柵老街","水劇場"]},
+  {name:"紹興",   time:"高鐵約 1.5 小時", emoji:"🍶", lon:120.58, lat:30.00, tag:"魯迅筆下的黃酒與烏篷船", spots:["魯迅故里","沈園","倉橋直街"]},
+  {name:"寧波",   time:"高鐵約 2 小時",  emoji:"📚", lon:121.55, lat:29.87, tag:"天一閣藏書與老外灘",     spots:["天一閣","老外灘","東錢湖"]},
+  {name:"常州",   time:"高鐵約 1 小時",  emoji:"🦖", lon:119.95, lat:31.78, tag:"帶娃首選中華恐龍園",     spots:["中華恐龍園","天目湖","青果巷"]},
+  {name:"南通",   time:"高鐵約 1.5 小時", emoji:"🌉", lon:120.89, lat:31.98, tag:"江海交匯的濠河綠意",     spots:["濠河風景區","狼山","南通博物苑"]},
+  {name:"揚州",   time:"高鐵約 2.5 小時", emoji:"🥟", lon:119.42, lat:32.39, tag:"一頓早茶抵過煙花三月",   spots:["瘦西湖","東關街","個園"]},
+  {name:"莫干山", time:"門到門約 2 小時", emoji:"🎋", lon:119.87, lat:30.60, tag:"竹海裡的民宿與清風",     spots:["竹海步道","裸心堡","山頂日落"]},
+  {name:"千島湖", time:"高鐵約 2.5 小時", emoji:"🚤", lon:119.04, lat:29.60, tag:"千座島嶼與一碗魚頭湯",   spots:["中心湖區遊船","環湖騎行","梅峰島觀景"]},
+  {name:"黃山",   time:"高鐵約 3 小時",  emoji:"⛰️", lon:118.34, lat:29.71, tag:"雲海、奇松與宏村白牆",   spots:["迎客松","光明頂","西海大峽谷","宏村（周邊）"]},
+];
+const COLORS = ["#4C7EF3","#F3A93C","#4CAF7D","#E4572E","#7A5FD0","#2FA8C6","#D5568F","#8A9B4C"];
+const segColor = i => {
+  let c = COLORS[i % COLORS.length];
+  if (i === DESTS.length - 1 && c === COLORS[0]) c = COLORS[1];
+  return c;
+};
+
+const svg = document.getElementById("wheel");
+const N = DESTS.length, seg = 360 / N, R = 200, r = 196;
+const NS = "http://www.w3.org/2000/svg";
+const rad = d => d * Math.PI / 180;
+
+DESTS.forEach((d, i) => {
+  const a0 = rad(i * seg - 90), a1 = rad((i + 1) * seg - 90);
+  const x0 = R + r * Math.cos(a0), y0 = R + r * Math.sin(a0);
+  const x1 = R + r * Math.cos(a1), y1 = R + r * Math.sin(a1);
+  const path = document.createElementNS(NS, "path");
+  path.setAttribute("d", `M${R},${R} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 0 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`);
+  path.setAttribute("fill", segColor(i));
+  svg.appendChild(path);
+
+  const mid = i * seg + seg / 2 - 90;
+  const tx = R + 132 * Math.cos(rad(mid)), ty = R + 132 * Math.sin(rad(mid));
+  const text = document.createElementNS(NS, "text");
+  text.setAttribute("x", tx); text.setAttribute("y", ty);
+  text.setAttribute("fill", "#fff");
+  text.setAttribute("font-size", d.name.length > 2 ? "17" : "20");
+  text.setAttribute("font-weight", "700");
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("dominant-baseline", "middle");
+  text.setAttribute("transform", `rotate(${mid + 90} ${tx} ${ty})`);
+  text.textContent = d.name;
+  svg.appendChild(text);
+});
+
+const hub = document.createElementNS(NS, "circle");
+hub.setAttribute("cx", R); hub.setAttribute("cy", R); hub.setAttribute("r", 40);
+hub.setAttribute("fill", "var(--hub)");
+svg.appendChild(hub);
+const hubText = document.createElementNS(NS, "text");
+hubText.setAttribute("x", R); hubText.setAttribute("y", R);
+hubText.setAttribute("fill", "var(--hub-text)");
+hubText.setAttribute("font-size", "16"); hubText.setAttribute("font-weight", "700");
+hubText.setAttribute("text-anchor", "middle"); hubText.setAttribute("dominant-baseline", "middle");
+hubText.textContent = "轉！";
+svg.appendChild(hubText);
+
+document.getElementById("legend").innerHTML =
+  DESTS.map(d => `<li><span>${d.emoji} ${d.name}</span><span class="t">${d.time}</span></li>`).join("");
+
+/* ── 方位小地圖（以上海為圓心，等距圈 100/200/300km）── */
+function miniMap(idx){
+  const W = 280, H = 232, P = 26;
+  const KX = Math.cos(rad(31)) * 111, KY = 111; // km per degree
+  const all = DESTS.concat([SH]);
+  const lons = all.map(p => p.lon), lats = all.map(p => p.lat);
+  const minLon = Math.min(...lons), maxLat = Math.max(...lats);
+  const u = p => (p.lon - minLon) * KX, v = p => (maxLat - p.lat) * KY;
+  const maxU = Math.max(...all.map(u)), maxV = Math.max(...all.map(v));
+  const s = Math.min((W - 2*P) / maxU, (H - 2*P) / maxV);
+  const X = p => (P + u(p) * s).toFixed(1), Y = p => (P + v(p) * s).toFixed(1);
+
+  const sh = `cx="${X(SH)}" cy="${Y(SH)}"`;
+  const t = DESTS[idx];
+  const rings = [100, 200, 300].map(km =>
+    `<circle class="m-ring" ${sh} r="${(km * s).toFixed(1)}"/>`).join("");
+  const dots = DESTS.map((d, i) => i === idx ? "" :
+    `<circle class="m-dot" cx="${X(d)}" cy="${Y(d)}" r="3"/>`).join("");
+  const tArrLeft = X(t) > W - 60; // 目標靠右緣時標籤改放左側
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}相對上海的方位圖">
+    ${rings}
+    <line class="m-route" x1="${X(SH)}" y1="${Y(SH)}" x2="${X(t)}" y2="${Y(t)}"/>
+    ${dots}
+    <circle class="m-sh" ${sh} r="4.5"/>
+    <text class="m-label" x="${+X(SH) - 8}" y="${+Y(SH) - 8}" text-anchor="end">上海</text>
+    <circle class="m-target" cx="${X(t)}" cy="${Y(t)}" r="6"/>
+    <text class="m-label" x="${+X(t) + (tArrLeft ? -10 : 10)}" y="${+Y(t) + 4}" text-anchor="${tArrLeft ? "end" : "start"}">${t.name}</text>
+    <text class="m-label-muted" x="${W - 8}" y="${H - 8}" text-anchor="end">虛線圈＝距上海 100・200・300 km</text>
+  </svg>`;
+}
+
+function showCard(idx){
+  const d = DESTS[idx];
+  const card = document.getElementById("card");
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="badge" style="background:${segColor(idx)}">${d.emoji}</div>
+      <div class="head-text">
+        <div class="kicker">這週末就去</div>
+        <div class="city-row"><span class="city-name">${d.name}</span><span class="chip">${d.time}</span></div>
+        <div class="tagline">${d.tag}</div>
+      </div>
+      <div class="seal">${d.name[0]}</div>
+    </div>
+    <div class="card-body">
+      <div class="map-wrap">${miniMap(idx)}</div>
+      <div class="spots">
+        <h3>關鍵景點</h3>
+        <ul>${d.spots.map(s => `<li>${s}</li>`).join("")}</ul>
+      </div>
+    </div>`;
+  card.hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("show")));
+}
+
+let rot = 0, spinning = false;
+svg.addEventListener("click", () => {
+  if (spinning) return;
+  spinning = true;
+  const card = document.getElementById("card");
+  card.classList.remove("show");
+  card.hidden = true;
+  rot += 5 * 360 + 360 * Math.random();
+  svg.style.transform = `rotate(${rot}deg)`;
+});
+svg.addEventListener("transitionend", () => {
+  spinning = false;
+  const pointerAngle = (360 - (rot % 360)) % 360;
+  const idx = Math.floor(pointerAngle / seg) % N;
+  showCard(idx);
+  document.getElementById("card").scrollIntoView({behavior:"smooth", block:"nearest"});
+});
+</script>
