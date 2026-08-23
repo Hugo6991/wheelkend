@@ -1,0 +1,7 @@
+{
+  "default": "shanghai",
+  "cities": [
+    { "id": "shanghai", "name": "上海" },
+    { "id": "beijing",  "name": "北京" }
+  ]
+}

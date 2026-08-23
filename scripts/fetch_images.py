@@ -1,37 +1,30 @@
 #!/usr/bin/env python3
-"""Refresh landmark photos from Wikimedia (zh.wikipedia pageimages).
+"""Fetch landmark photos for one city from Wikimedia (zh.wikipedia pageimages).
 
-Downloads one freely-licensed photo per city into assets/img/<key>.jpg and
-records file / license / artist in assets/credits.json. Skips cities whose
-image already exists; delete a jpg (or run with --force) to refetch it.
-Rate-limit friendly: 4s between cities, backoff on HTTP 429."""
+Usage: python3 scripts/fetch_images.py <city-id> [--force]
+
+Reads data/cities/<city-id>.json (each dest needs "key" and "wiki"), downloads
+one freely-licensed photo per dest into assets/img/<city-id>/<key>.jpg and
+records file / license / artist in assets/img/<city-id>/credits.json.
+Skips dests whose image already exists unless --force. Rate-limit friendly:
+4s between dests, backoff on HTTP 429. Exits 1 if any dest failed."""
 import json, os, sys, time, urllib.error, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-IMGDIR = os.path.join(ROOT, "assets", "img")
-CREDITS = os.path.join(ROOT, "assets", "credits.json")
+UA = {"User-Agent": "wheelkend/1.0 (personal project)"}
+
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+FORCE = "--force" in sys.argv
+if len(args) != 1:
+    sys.exit("usage: fetch_images.py <city-id> [--force]")
+CITY = args[0]
+
+CITY_JSON = os.path.join(ROOT, "data", "cities", f"{CITY}.json")
+IMGDIR = os.path.join(ROOT, "assets", "img", CITY)
+CREDITS = os.path.join(IMGDIR, "credits.json")
 os.makedirs(IMGDIR, exist_ok=True)
 
-UA = {"User-Agent": "wheelkend/1.0 (personal project)"}
-FORCE = "--force" in sys.argv
-
-# key -> zh.wikipedia article whose lead image represents the city
-CITIES = [
-    ("suzhou",    "拙政园"),
-    ("hangzhou",  "西湖"),
-    ("wuxi",      "鼋头渚"),
-    ("nanjing",   "中山陵"),
-    ("jiaxing",   "南湖 (嘉兴)"),
-    ("wuzhen",    "乌镇"),
-    ("shaoxing",  "沈园"),
-    ("ningbo",    "天一阁"),
-    ("changzhou", "南山竹海"),
-    ("nantong",   "南通博物苑"),
-    ("yangzhou",  "瘦西湖"),
-    ("moganshan", "莫干山"),
-    ("qiandaohu", "千岛湖"),
-    ("huangshan", "黄山"),
-]
+cfg = json.load(open(CITY_JSON, encoding="utf-8"))
 
 def get(url, timeout=30):
     for attempt in range(5):
@@ -50,7 +43,7 @@ def get(url, timeout=30):
 def api(host, params):
     return json.loads(get(f"https://{host}/w/api.php?" + urllib.parse.urlencode(params)))
 
-def fetch_city(key, title):
+def fetch_dest(key, title):
     q = api("zh.wikipedia.org", {
         "action": "query", "titles": title, "prop": "pageimages",
         "piprop": "thumbnail|name", "pithumbsize": "800",
@@ -82,14 +75,19 @@ if os.path.exists(CREDITS):
         prev[r["key"]] = r
 
 results = []
-for key, title in CITIES:
+for d in cfg["dests"]:
+    key, title = d["key"], d.get("wiki")
+    if not title:
+        results.append({"key": key, "error": "no wiki title in city json"})
+        print(f"[FAIL] {key}: no wiki title", flush=True)
+        continue
     dest = os.path.join(IMGDIR, f"{key}.jpg")
     if not FORCE and key in prev and os.path.exists(dest):
         results.append(prev[key])
         print(f"[SKIP] {key} already fetched", flush=True)
         continue
     try:
-        res = fetch_city(key, title)
+        res = fetch_dest(key, title)
     except Exception as e:
         res = {"key": key, "title": title, "error": repr(e)}
     results.append(res)
@@ -101,6 +99,5 @@ with open(CREDITS, "w", encoding="utf-8") as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
 
 fails = [r["key"] for r in results if "error" in r]
-print(f"\nDone. {len(results)-len(fails)}/{len(results)} ok. FAILS: {fails or 'none'}")
-if fails:
-    sys.exit(1)
+print(f"\n{CITY}: {len(results)-len(fails)}/{len(results)} ok. FAILS: {fails or 'none'}")
+sys.exit(1 if fails else 0)

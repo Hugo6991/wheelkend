@@ -1,0 +1,142 @@
+[
+  {
+    "key": "tianjin",
+    "title": "五大道",
+    "file": "五大道地标钟.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/%E4%BA%94%E5%A4%A7%E9%81%93%E5%9C%B0%E6%A0%87%E9%92%9F.jpg/960px-%E4%BA%94%E5%A4%A7%E9%81%93%E5%9C%B0%E6%A0%87%E9%92%9F.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/tianjin.jpg",
+    "bytes": 413602,
+    "license": "CC BY-SA 4.0",
+    "artist": "<a href=\"//commons.wikimedia.org/wiki/User:KangTyngrwey\" class=\"mw-redirect\" title=\"User:KangTyngrwey\">KangTyngrwey</a>"
+  },
+  {
+    "key": "beidaihe",
+    "title": "北戴河区",
+    "file": "Beidaihe_panorama_from_the_south.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Beidaihe_panorama_from_the_south.jpg/960px-Beidaihe_panorama_from_the_south.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/beidaihe.jpg",
+    "bytes": 129310,
+    "license": "CC BY-SA 4.0",
+    "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Charlie_fong\" title=\"User:Charlie fong\">Charlie fong</a>"
+  },
+  {
+    "key": "shanhaiguan",
+    "title": "山海关",
+    "file": "Shanhaiguan.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Shanhaiguan.jpg/960px-Shanhaiguan.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/shanhaiguan.jpg",
+    "bytes": 159882,
+    "license": "CC BY 2.0",
+    "artist": "BenBenW"
+  },
+  {
+    "key": "chengde",
+    "title": "避暑山庄",
+    "file": "Chengde_Mountain_Resort_22630-Chengde_(42954495010).jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Chengde_Mountain_Resort_22630-Chengde_%2842954495010%29.jpg/960px-Chengde_Mountain_Resort_22630-Chengde_%2842954495010%29.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/chengde.jpg",
+    "bytes": 201117,
+    "license": "CC BY 2.0",
+    "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/7138083@N04\">xiquinhosilva</a>"
+  },
+  {
+    "key": "chongli",
+    "title": "云顶滑雪公园",
+    "file": "Snowboard_cross_finish_area_edit.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Snowboard_cross_finish_area_edit.jpg/960px-Snowboard_cross_finish_area_edit.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/chongli.jpg",
+    "bytes": 202634,
+    "license": "CC BY-SA 3.0",
+    "artist": "Kate McLoughlin"
+  },
+  {
+    "key": "datong",
+    "title": "云冈石窟",
+    "file": "61292-Yungang-Grottoes_(28498548881).jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/61292-Yungang-Grottoes_%2828498548881%29.jpg/960px-61292-Yungang-Grottoes_%2828498548881%29.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/datong.jpg",
+    "bytes": 252853,
+    "license": "CC BY 2.0",
+    "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/7138083@N04\">xiquinhosilva</a>"
+  },
+  {
+    "key": "zhengding",
+    "title": "隆兴寺",
+    "file": "The_Manichaean_Hall_03_Longxing_temple.JPG",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/The_Manichaean_Hall_03_Longxing_temple.JPG/960px-The_Manichaean_Hall_03_Longxing_temple.JPG?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/zhengding.jpg",
+    "bytes": 221884,
+    "license": "CC BY 3.0",
+    "artist": "Photo by and (c)2007 David Chen"
+  },
+  {
+    "key": "gubei",
+    "title": "司马台长城",
+    "file": "Simatai_Great_Wall.JPG",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Simatai_Great_Wall.JPG/960px-Simatai_Great_Wall.JPG?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/gubei.jpg",
+    "bytes": 276855,
+    "license": "CC BY-SA 3.0",
+    "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Walter_Grassroot\" title=\"User:Walter Grassroot\">Walter Grassroot</a>"
+  },
+  {
+    "key": "mutianyu",
+    "title": "慕田峪长城",
+    "file": "Great_Wall_of_China,_Mutianyu,_Huairou_County,_China-10June2009.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Great_Wall_of_China%2C_Mutianyu%2C_Huairou_County%2C_China-10June2009.jpg/960px-Great_Wall_of_China%2C_Mutianyu%2C_Huairou_County%2C_China-10June2009.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/mutianyu.jpg",
+    "bytes": 235985,
+    "license": "CC BY-SA 2.0",
+    "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/10897362@N00\">Bridget Coila</a> from Beijing, China"
+  },
+  {
+    "key": "baiyangdian",
+    "title": "白洋淀",
+    "file": "白洋淀景区的晚霞.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/%E7%99%BD%E6%B4%8B%E6%B7%80%E6%99%AF%E5%8C%BA%E7%9A%84%E6%99%9A%E9%9C%9E.jpg/960px-%E7%99%BD%E6%B4%8B%E6%B7%80%E6%99%AF%E5%8C%BA%E7%9A%84%E6%99%9A%E9%9C%9E.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/baiyangdian.jpg",
+    "bytes": 159303,
+    "license": "CC BY-SA 4.0",
+    "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Lt24601&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Lt24601 (page does not exist)\">Lt24601</a>"
+  },
+  {
+    "key": "yuxian",
+    "title": "西古堡",
+    "file": "西古堡-1.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/%E8%A5%BF%E5%8F%A4%E5%A0%A1-1.jpg/960px-%E8%A5%BF%E5%8F%A4%E5%A0%A1-1.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/yuxian.jpg",
+    "bytes": 192637,
+    "license": "CC BY-SA 4.0",
+    "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Fymking&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Fymking (page does not exist)\">Fymking</a>"
+  },
+  {
+    "key": "yesanpo",
+    "title": "拒马河",
+    "file": "拒马河苟各庄段.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/%E6%8B%92%E9%A9%AC%E6%B2%B3%E8%8B%9F%E5%90%84%E5%BA%84%E6%AE%B5.jpg/960px-%E6%8B%92%E9%A9%AC%E6%B2%B3%E8%8B%9F%E5%90%84%E5%BA%84%E6%AE%B5.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/yesanpo.jpg",
+    "bytes": 143608,
+    "license": "CC BY-SA 4.0",
+    "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Antigng\" class=\"mw-redirect\" title=\"User:Antigng\">Antigng</a>"
+  },
+  {
+    "key": "yanqing",
+    "title": "八达岭长城",
+    "file": "GreatWall_Badaling.jpg",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/c/c4/GreatWall_Badaling.jpg?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail_unscaled",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/yanqing.jpg",
+    "bytes": 114096,
+    "license": "Public domain",
+    "artist": "<a href=\"https://en.wikipedia.org/wiki/User:DF08\" class=\"extiw\" title=\"wikipedia:User:DF08\">DF08</a> at <a href=\"https://en.wikipedia.org/wiki/\" class=\"extiw\" title=\"wikipedia:\">English Wikipedia</a>"
+  },
+  {
+    "key": "jizhou",
+    "title": "独乐寺",
+    "file": "独乐寺观音阁正面1.JPG",
+    "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/%E7%8B%AC%E4%B9%90%E5%AF%BA%E8%A7%82%E9%9F%B3%E9%98%81%E6%AD%A3%E9%9D%A21.JPG/960px-%E7%8B%AC%E4%B9%90%E5%AF%BA%E8%A7%82%E9%9F%B3%E9%98%81%E6%AD%A3%E9%9D%A21.JPG?utm_source=zh.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "saved": "/Users/hugo/Downloads/Code-camp/2026-random-idea/assets/img/beijing/jizhou.jpg",
+    "bytes": 212529,
+    "license": "CC BY-SA 3.0",
+    "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Hat600\" title=\"User:Hat600\">Hat600</a>"
+  }
+]
