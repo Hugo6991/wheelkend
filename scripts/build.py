@@ -30,6 +30,22 @@ shutil.copytree(os.path.join(ROOT, "vendor"), os.path.join(DIST, "vendor"))
 manifest = os.path.join(DATA, "index.json")
 shutil.copy2(manifest, os.path.join(DIST, "data", "cities", "index.json"))
 
+# font-subset coverage check: new city data must not introduce glyphs
+# missing from the self-hosted subset (they would render as tofu)
+charset_path = os.path.join(ROOT, "vendor", "fonts", "charset.txt")
+if os.path.exists(charset_path):
+    covered = set(open(charset_path, encoding="utf-8").read())
+    used = set()
+    for fn in os.listdir(DATA):
+        if fn.endswith(".json"):
+            used.update(open(os.path.join(DATA, fn), encoding="utf-8").read())
+    gap = {c for c in used - covered if c.isprintable() and not c.isspace()}
+    if gap:
+        print(f"[WARN] {len(gap)} chars missing from font subset — rerun "
+              f"scripts/build_fonts.py: {''.join(sorted(gap))[:80]}")
+else:
+    print("[WARN] vendor/fonts/charset.txt missing — run scripts/build_fonts.py")
+
 missing = []
 total_img = 0
 for fn in sorted(os.listdir(DATA)):
