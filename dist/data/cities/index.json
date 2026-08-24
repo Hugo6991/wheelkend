@@ -1,0 +1,15 @@
+{
+  "default": "shanghai",
+  "cities": [
+    { "id": "shanghai",  "name": "上海" },
+    { "id": "beijing",   "name": "北京" },
+    { "id": "guangzhou", "name": "廣州" },
+    { "id": "shenzhen",  "name": "深圳" },
+    { "id": "chengdu",   "name": "成都" },
+    { "id": "hangzhou",  "name": "杭州" },
+    { "id": "chongqing", "name": "重慶" },
+    { "id": "wuhan",     "name": "武漢" },
+    { "id": "xian",      "name": "西安" },
+    { "id": "nanjing",   "name": "南京" }
+  ]
+}

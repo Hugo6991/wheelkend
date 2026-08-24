@@ -1,41 +1,75 @@
 # wheelkend 🎡
 
-**wheel × weekend** — 以上海為圓心、車程三小時內的週末目的地轉盤。點一下轉盤，去哪交給命運；轉到哪座城市，就出一張圖文卡（實景照片、車程、精簡介紹、景點關鍵字）。
+**wheel × weekend** — 以中國十大城市為圓心（北上廣深＋成都杭州重慶武漢西安南京）、車程 1–3 小時的週末目的地轉盤。
+點一下轉盤，去哪交給命運；轉到哪，就出一張圖文卡（實景照片、車程、精簡介紹、景點關鍵字），地圖同步飛到目的地。
 
-單一靜態 HTML，零執行期外部請求（唯一例外是 Google Fonts）。轉盤引擎使用 [CrazyTim/spin-wheel](https://github.com/CrazyTim/spin-wheel) v5.0.2（MIT，原始碼完整內嵌）。
+線上版：https://wheelkend.pages.dev
+
+## 概念
+
+「週末想出門，但選擇困難」是唯一要解決的問題。做法刻意簡單：
+
+1. 每座出發城市策展 14 個目的地，全部控制在高鐵／門到門 1–3 小時
+2. 轉盤隨機決定，拒絕比價、拒絕攻略焦慮
+3. 出結果立刻給「去了要看什麼」的最小資訊量——一張照片、一段話、幾個關鍵字
+
+## 技術選型（為什麼沒有框架）
+
+- **Vanilla HTML/CSS/JS**：本質是內容站＋一個互動元件，沒有複雜狀態；不用框架意味著沒有 build chain、沒有依賴升級、fork 的人看得懂全部程式碼
+- **資料驅動**：城市＝一個 JSON 檔（`data/cities/<id>.json`），新增城市不碰任何程式碼
+- **[spin-wheel](https://github.com/CrazyTim/spin-wheel) v5.0.2**（MIT）：零依賴 canvas 轉盤引擎，原始碼完整內嵌於 `src/index.html`
+- **[Leaflet](https://leafletjs.com) 1.9.4**（BSD-2）＋ OpenStreetMap：開源地圖，vendor 進 repo、不依賴 CDN
+- 唯一執行期外部資源：Google Fonts 與 OSM 圖磚（國內部署版需替換，見下方 Roadmap）
 
 ## 結構
 
 ```
-├── dist/index.html        # 成品（部署這個目錄）
-├── src/index.src.html     # v2 原始檔（圖片以佔位符表示）
-├── src/v1.html            # v1：零依賴 vanilla SVG 版（對照用）
-├── assets/img/            # 14 張城市照片原檔（Wikimedia Commons，CC 授權）
-├── assets/credits.json    # 每張照片的檔名／作者／授權記錄
-└── scripts/
-    ├── fetch_images.py    # 從 Wikimedia 抓（或補抓）城市照片＋授權資料
-    └── embed_images.py    # 壓縮照片並內嵌，產出 dist/index.html
+├── src/
+│   ├── index.html         # 頁面殼（含內嵌 spin-wheel 引擎）
+│   └── app.js             # 應用邏輯：載入城市資料、轉盤、圖文卡、地圖
+├── data/cities/
+│   ├── index.json         # 城市清單與預設城市
+│   └── <city>.json        # 每城 14 個目的地（名稱/車程/座標/介紹/關鍵字/維基條目）×10 城
+├── assets/img/<city>/     # 各城市照片原檔＋credits.json（Wikimedia CC 授權記錄）
+├── vendor/leaflet/        # Leaflet 1.9.4
+├── scripts/
+│   ├── fetch_images.py    # 依城市 JSON 的 wiki 欄位從 Wikimedia 抓照片＋授權
+│   └── build.py           # 壓縮照片、合併授權資訊、組出 dist/
+└── dist/                  # build 產物（部署這個目錄）
 ```
 
-## Build
+## 新增一座城市
 
-macOS（`sips` 為系統內建）：
+1. 建 `data/cities/<id>.json`（抄 `beijing.json` 的格式）：城市名、中心座標、14 個目的地
+   - 每個目的地給 `wiki`（zh.wikipedia 條目名，用來抓代表照片）
+2. `python3 scripts/fetch_images.py <id>` 抓照片（有失敗會列出，換條目名重跑即可）
+3. 把 `<id>` 加進 `data/cities/index.json`
+4. `python3 scripts/build.py` → 完成，頁面右上就會出現新城市
+
+文案慣例：整站不用句號「。」，句與句用「——」「；」「，」銜接。
+
+## Build 與部署
+
+macOS（`sips` 為系統內建；其他平台把 build.py 的 sips 換成 ImageMagick 即可）：
 
 ```bash
-python3 scripts/embed_images.py
+python3 scripts/build.py
+npx wrangler pages deploy dist --project-name wheelkend --branch main
 ```
 
-產出 `dist/index.html`（約 1.2 MB，14 張照片內嵌為 base64）。改了 `src/index.src.html` 之後重跑一次即可。
+Cloudflare Pages 靜態託管，`main` 為 production。
 
-換照片：刪掉 `assets/img/<key>.jpg` 後跑 `python3 scripts/fetch_images.py`（或改腳本裡該城市對應的維基條目），再重跑 embed。
+## Roadmap
 
-## 部署
-
-- **海外**：Cloudflare Pages — Framework preset 選 None、build command 留空、output directory 填 `dist`
-- **國內**：計畫走免備案的香港節點（阿里雲／騰訊雲）；注意國內版需把 Google Fonts 改為自託管子集字型（尚未做）
+- [ ] 國內部署（免備案香港節點）：Google Fonts 換自託管子集字型、OSM 圖磚換國內可達來源
+- [ ] 自訂網域
+- [x] 十大城市圓心（2026-08-23）
+- [ ] 更多城市（長沙、青島、廈門⋯⋯）
+- [ ] 目的地名單持續策展與勘誤
 
 ## 授權說明
 
-- 轉盤引擎 spin-wheel：MIT，版權聲明內嵌於 `dist/index.html` 與 `src/index.src.html`
-- 城市照片：均取自 Wikimedia Commons 的自由授權圖（CC BY / CC BY-SA 各版本），逐張署名列於頁尾「圖片來源與授權」折疊區與 `assets/credits.json`
-- 介紹文與資料為手寫內容，車程為約略值
+- 轉盤引擎 spin-wheel：MIT（版權聲明內嵌於 `src/index.html`）
+- Leaflet：BSD-2-Clause；圖資 © OpenStreetMap 貢獻者
+- 城市照片：均取自 Wikimedia Commons 自由授權圖（CC BY / CC BY-SA 各版本），逐張署名於頁尾「圖片來源與授權」與各 `credits.json`
+- 介紹文與名單為手寫策展內容，車程為約略值，出發前請再確認班次
