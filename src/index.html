@@ -1,7 +1,8 @@
 <title>上海週末目的地轉盤 v2</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
   :root {
     --ink: #29211a;
@@ -451,7 +452,7 @@
   }
   .kw {
     font-size: 11.5px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--ink);
     border: 1.5px solid rgba(41, 33, 26, .32);
     border-radius: 999px;
@@ -460,6 +461,61 @@
     white-space: nowrap;
   }
   .kw::before { content: "# "; color: var(--verm); font-weight: 700; }
+
+  /* ---------- city picker ---------- */
+  .city-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--ink-soft);
+  }
+  .city-pick select {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--paper-hi);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 4px 14px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(41, 33, 26, .85);
+  }
+
+  /* ---------- map ---------- */
+  .map-sec { margin-top: 46px; }
+  #bigmap {
+    height: 340px;
+    margin-top: 18px;
+    border: 2.5px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: 7px 7px 0 rgba(41, 33, 26, .09);
+    background: var(--paper);
+    filter: sepia(.14) saturate(.92);
+    z-index: 0;
+  }
+  @media (max-width: 540px) { #bigmap { height: 280px; } }
+  .map-sec .m-note {
+    margin: 8px 2px 0;
+    font-size: 11px;
+    letter-spacing: .04em;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .map-tip {
+    background: var(--ink);
+    color: var(--paper-hi);
+    border: none;
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .map-tip::before { display: none; }
 
   /* ---------- list ---------- */
   .list-sec { margin-top: 46px; }
@@ -554,15 +610,16 @@
 
 <div class="page">
   <header class="rev rev-1">
-    <span class="eyebrow">滬上出發・週末限定</span><br>
+    <span class="eyebrow" id="eyebrow">滬上出發・週末限定</span><br>
     <h1>週末目的地<span class="h1-verm">轉盤</span><span class="v2-tag">V2</span></h1>
-    <p class="lede">十四個目的地，最遠車程三小時<br>點一下轉盤，去哪交給命運</p>
+    <p class="lede" id="lede">十四個目的地，最遠車程三小時<br>點一下轉盤，去哪交給命運</p>
+    <div class="city-pick">出發城市<select id="citySel" aria-label="選擇出發城市"></select></div>
     <div class="orn">✦</div>
   </header>
 
   <div class="stage-wrap rev rev-2">
-    <span class="side-tag l" aria-hidden="true">說走就走</span>
-    <span class="side-tag r" aria-hidden="true">滬上出發</span>
+    <span class="side-tag l" id="sideL" aria-hidden="true">說走就走</span>
+    <span class="side-tag r" id="sideR" aria-hidden="true">滬上出發</span>
     <div class="stage">
       <div class="rays" aria-hidden="true"></div>
       <div class="rim" id="rim" title="點一下，轉起來">
@@ -600,13 +657,19 @@
     <ul class="dests" id="destList"></ul>
   </section>
 
+  <section class="map-sec rev rev-4" id="mapSec">
+    <div class="list-head">目的地版圖</div>
+    <div id="bigmap"></div>
+    <p class="m-note">圖資 © OpenStreetMap 貢獻者・轉出結果會自動飛過去</p>
+  </section>
+
   <footer class="rev rev-4">
     <div class="f-orn">★ ★ ★</div>
     轉盤引擎：<a href="https://github.com/CrazyTim/spin-wheel" rel="noopener">CrazyTim / spin-wheel</a> v5.0.2（MIT，原始碼已完整內嵌）<br>
     車程與景點為參考資訊，出發前請再確認班次與開放時間
-    <details class="credits">
+    <details class="credits" id="creditsWrap">
       <summary>圖片來源與授權（Wikimedia Commons）</summary>
-      <div class="credits-body"><!--__CREDITS__--></div>
+      <div class="credits-body" id="creditsBody"></div>
     </details>
   </footer>
 </div>
@@ -647,275 +710,6 @@
 var spinWheel=(()=>{var R=Object.defineProperty;var H=Object.getOwnPropertyDescriptor;var X=Object.getOwnPropertyNames,x=Object.getOwnPropertySymbols;var E=Object.prototype.hasOwnProperty,Y=Object.prototype.propertyIsEnumerable;var L=Math.pow,I=(i,e,t)=>e in i?R(i,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):i[e]=t,v=(i,e)=>{for(var t in e||(e={}))E.call(e,t)&&I(i,t,e[t]);if(x)for(var t of x(e))Y.call(e,t)&&I(i,t,e[t]);return i};var q=(i,e)=>{for(var t in e)R(i,t,{get:e[t],enumerable:!0})},$=(i,e,t,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of X(e))!E.call(i,n)&&n!==t&&R(i,n,{get:()=>e[n],enumerable:!(s=H(e,n))||s.enumerable});return i};var Q=i=>$(R({},"__esModule",{value:!0}),i);var ee={};q(ee,{Wheel:()=>w});function W(i=0,e=0,t=14){return parseFloat((Math.random()*(e-i)+i).toFixed(t))}function m(i=0){return i*Math.PI/180}function A(i,e,t){return e<t?e<=i&&i<t:e<=i||i<t}function P(i,e,t,s){s.save(),s.font=`1px ${e}`;let n=s.measureText(i).width;return s.restore(),t/n}function T(i={x:0,y:0},e,t,s){return L(i.x-e,2)+L(i.y-t,2)<=L(s,2)}function S(i={x:0,y:0},e={},t=1){let s=e.getBoundingClientRect();return{x:(i.x-s.left)*t,y:(i.y-s.top)*t}}function k(i,e,t,s){let n=i-t,r=e-s,a=Math.atan2(-r,-n);return a*=180/Math.PI,a<0&&(a+=360),a}function U(i=0,e=0){let t=i+e,s;return t>0?s=t%360:s=360+t%360,s===360&&(s=0),s}function z(i=0,e=0){let t=180-e;return 180-U(i,t)}function V(i=0,e=0,t=1){let s=(i%360+e)%360;return s=J(s),s=(t===1?360-s:360+s)%360,s*=t,i+s}function b(i){return typeof i=="object"&&!Array.isArray(i)&&i!==null}function u(i){return typeof i=="number"&&!Number.isNaN(i)}function l({val:i,isValid:e,errorMessage:t,defaultValue:s,action:n=null}){if(e)return n?n():i;if(i===void 0)return s;throw new Error(t)}function J(i=0){return Number(i.toFixed(9))}function F(i){return Math.sin(i*Math.PI/2)}function D(i={},e={}){if(window.ResizeObserver){let t=new ResizeObserver(()=>{e({redraw:!0})});return t.observe(i),{stop:()=>{t.unobserve(i),t.disconnect()}}}return window.addEventListener("resize",e),{stop:()=>{window.removeEventListener("resize",e)}}}var p=Object.freeze({left:"left",right:"right",center:"center"}),o=Object.freeze({wheel:{borderColor:"#000",borderWidth:1,debug:!1,image:null,isInteractive:!0,itemBackgroundColors:["#fff"],itemLabelAlign:p.right,itemLabelBaselineOffset:0,itemLabelColors:["#000"],itemLabelFont:"sans-serif",itemLabelFontSizeMax:500,itemLabelRadius:.85,itemLabelRadiusMax:.2,itemLabelRotation:0,itemLabelStrokeColor:"#fff",itemLabelStrokeWidth:0,items:[],lineColor:"#000",lineWidth:1,pixelRatio:0,radius:.95,rotation:0,rotationResistance:-35,rotationSpeedMax:300,offset:{x:0,y:0},onCurrentIndexChange:null,onRest:null,onSpin:null,overlayImage:null,pointerAngle:0},item:{backgroundColor:null,image:null,imageOpacity:1,imageRadius:.5,imageRotation:0,imageScale:1,label:"",labelColor:null,value:null,weight:1}}),c=Object.freeze({pointerLineColor:"#ff00ff",labelBoundingBoxColor:"#ff00ff",labelRadiusColor:"#00ff00",dragPointHue:300});function O(i={}){K(i),i._handler_onResize=D(i._canvasContainer,({redraw:t=!0})=>{i.resize(),t&&i.draw(performance.now())});let e=()=>{i._mediaQueryList=window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`),i._mediaQueryList.addEventListener("change",i._handler_onDevicePixelRatioChange,{once:!0})};i._handler_onDevicePixelRatioChange=()=>{i.resize(),e()},e()}function B(i={}){let e=i.canvas;"PointerEvent"in window?(e.removeEventListener("pointerdown",i._handler_onPointerDown),e.removeEventListener("pointermove",i._handler_onPointerMoveRefreshCursor)):(e.removeEventListener("touchstart",i._handler_onTouchStart),e.removeEventListener("mousedown",i._handler_onMouseDown),e.removeEventListener("mousemove",i._handler_onMouseMoveRefreshCursor)),i._handler_onResize.stop(),i._mediaQueryList.removeEventListener("change",i._handler_onDevicePixelRatioChange)}function K(i={}){let e=i.canvas;i._handler_onPointerMoveRefreshCursor=(t={})=>{let s={x:t.clientX,y:t.clientY};i._isCursorOverWheel=i.wheelHitTest(s),i.refreshCursor()},i._handler_onMouseMoveRefreshCursor=(t={})=>{let s={x:t.clientX,y:t.clientY};i._isCursorOverWheel=i.wheelHitTest(s),i.refreshCursor()},i._handler_onPointerDown=(t={})=>{let s={x:t.clientX,y:t.clientY};if(!i.isInteractive||!i.wheelHitTest(s))return;t.preventDefault(),i.dragStart(s),e.setPointerCapture(t.pointerId),e.addEventListener("pointermove",n),e.addEventListener("pointerup",r),e.addEventListener("pointercancel",r),e.addEventListener("pointerout",r);function n(a={}){a.preventDefault(),i.dragMove({x:a.clientX,y:a.clientY})}function r(a={}){a.preventDefault(),e.releasePointerCapture(a.pointerId),e.removeEventListener("pointermove",n),e.removeEventListener("pointerup",r),e.removeEventListener("pointercancel",r),e.removeEventListener("pointerout",r),i.dragEnd()}},i._handler_onMouseDown=(t={})=>{let s={x:t.clientX,y:t.clientY};if(!i.isInteractive||!i.wheelHitTest(s))return;i.dragStart(s),document.addEventListener("mousemove",n),document.addEventListener("mouseup",r);function n(a={}){a.preventDefault(),i.dragMove({x:a.clientX,y:a.clientY})}function r(a={}){a.preventDefault(),document.removeEventListener("mousemove",n),document.removeEventListener("mouseup",r),i.dragEnd()}},i._handler_onTouchStart=(t={})=>{let s={x:t.targetTouches[0].clientX,y:t.targetTouches[0].clientY};if(!i.isInteractive||!i.wheelHitTest(s))return;t.preventDefault(),i.dragStart(s),e.addEventListener("touchmove",n),e.addEventListener("touchend",r),e.addEventListener("touchcancel",r);function n(a={}){a.preventDefault(),i.dragMove({x:a.targetTouches[0].clientX,y:a.targetTouches[0].clientY})}function r(a={}){a.preventDefault(),e.removeEventListener("touchmove",n),e.removeEventListener("touchend",r),e.removeEventListener("touchcancel",r),i.dragEnd()}},"PointerEvent"in window?(e.addEventListener("pointerdown",i._handler_onPointerDown),e.addEventListener("pointermove",i._handler_onPointerMoveRefreshCursor)):(e.addEventListener("touchstart",i._handler_onTouchStart),e.addEventListener("mousedown",i._handler_onMouseDown),e.addEventListener("mousemove",i._handler_onMouseMoveRefreshCursor))}var y=class{constructor(e,t={}){if(!b(e))throw new Error("wheel must be an instance of Wheel");if(!b(t)&&t!==null)throw new Error("props must be an Object or null");this._wheel=e;for(let s of Object.keys(o.item))this["_"+s]=o.item[s];t?this.init(t):this.init(o.item)}init(e={}){this.backgroundColor=e.backgroundColor,this.image=e.image,this.imageOpacity=e.imageOpacity,this.imageRadius=e.imageRadius,this.imageRotation=e.imageRotation,this.imageScale=e.imageScale,this.label=e.label,this.labelColor=e.labelColor,this.value=e.value,this.weight=e.weight}get backgroundColor(){return this._backgroundColor}set backgroundColor(e){typeof e=="string"?this._backgroundColor=e:this._backgroundColor=o.item.backgroundColor,this._wheel.refresh()}get image(){return this._image}set image(e){e instanceof HTMLImageElement?this._image=e:this._image=o.item.image,this._wheel.refresh()}get imageOpacity(){return this._imageOpacity}set imageOpacity(e){typeof e=="number"?this._imageOpacity=e:this._imageOpacity=o.item.imageOpacity,this._wheel.refresh()}get imageRadius(){return this._imageRadius}set imageRadius(e){typeof e=="number"?this._imageRadius=e:this._imageRadius=o.item.imageRadius,this._wheel.refresh()}get imageRotation(){return this._imageRotation}set imageRotation(e){typeof e=="number"?this._imageRotation=e:this._imageRotation=o.item.imageRotation,this._wheel.refresh()}get imageScale(){return this._imageScale}set imageScale(e){typeof e=="number"?this._imageScale=e:this._imageScale=o.item.imageScale,this._wheel.refresh()}get label(){return this._label}set label(e){typeof e=="string"?this._label=e:this._label=o.item.label,this._wheel.refresh()}get labelColor(){return this._labelColor}set labelColor(e){typeof e=="string"?this._labelColor=e:this._labelColor=o.item.labelColor,this._wheel.refresh()}get value(){return this._value}set value(e){e!==void 0?this._value=e:this._value=o.item.value}get weight(){return this._weight}set weight(e){typeof e=="number"?this._weight=e:this._weight=o.item.weight}getIndex(){let e=this._wheel.items.findIndex(t=>t===this);if(e===-1)throw new Error("Item not found in parent Wheel");return e}getCenterAngle(){let e=this._wheel.getItemAngles()[this.getIndex()];return e.start+(e.end-e.start)/2}getStartAngle(){return this._wheel.getItemAngles()[this.getIndex()].start}getEndAngle(){return this._wheel.getItemAngles()[this.getIndex()].end}getRandomAngle(){return W(this.getStartAngle(),this.getEndAngle())}};var w=class{constructor(e,t={}){if(!(e instanceof Element))throw new Error("container must be an instance of Element");if(!b(t)&&t!==null)throw new Error("props must be an Object or null");this._frameRequestId=null,this._rotationSpeed=0,this._rotationDirection=1,this._spinToTimeEnd=null,this._lastSpinFrameTime=null,this._isCursorOverWheel=!1,this.add(e);for(let s of Object.keys(o.wheel))this["_"+s]=o.wheel[s];t?this.init(t):this.init(o.wheel)}init(e={}){this._isInitialising=!0,this.borderColor=e.borderColor,this.borderWidth=e.borderWidth,this.debug=e.debug,this.image=e.image,this.isInteractive=e.isInteractive,this.itemBackgroundColors=e.itemBackgroundColors,this.itemLabelAlign=e.itemLabelAlign,this.itemLabelBaselineOffset=e.itemLabelBaselineOffset,this.itemLabelColors=e.itemLabelColors,this.itemLabelFont=e.itemLabelFont,this.itemLabelFontSizeMax=e.itemLabelFontSizeMax,this.itemLabelRadius=e.itemLabelRadius,this.itemLabelRadiusMax=e.itemLabelRadiusMax,this.itemLabelRotation=e.itemLabelRotation,this.itemLabelStrokeColor=e.itemLabelStrokeColor,this.itemLabelStrokeWidth=e.itemLabelStrokeWidth,this.items=e.items,this.lineColor=e.lineColor,this.lineWidth=e.lineWidth,this.pixelRatio=e.pixelRatio,this.rotationSpeedMax=e.rotationSpeedMax,this.radius=e.radius,this.rotation=e.rotation,this.rotationResistance=e.rotationResistance,this.offset=e.offset,this.onCurrentIndexChange=e.onCurrentIndexChange,this.onRest=e.onRest,this.onSpin=e.onSpin,this.overlayImage=e.overlayImage,this.pointerAngle=e.pointerAngle}add(e){this._canvasContainer=e,this.canvas=document.createElement("canvas"),this.canvas.style.display="block",this._context=this.canvas.getContext("2d"),this._canvasContainer.append(this.canvas),O(this),this._isInitialising===!1&&this.resize()}remove(){this.canvas!==null&&(this._frameRequestId!==null&&window.cancelAnimationFrame(this._frameRequestId),B(this),this._canvasContainer.removeChild(this.canvas),this._canvasContainer=null,this.canvas=null,this._context=null)}resize(){if(this.canvas===null)return;this.canvas.style.width=this._canvasContainer.clientWidth+"px",this.canvas.style.height=this._canvasContainer.clientHeight+"px";let[e,t]=[this._canvasContainer.clientWidth*this.getActualPixelRatio(),this._canvasContainer.clientHeight*this.getActualPixelRatio()];this.canvas.width=e,this.canvas.height=t;let s=Math.min(e,t),n={w:s-s*this._offset.x,h:s-s*this._offset.y},r=Math.min(e/n.w,t/n.h);this._size=Math.max(n.w*r,n.h*r),this._center={x:e/2+e*this._offset.x,y:t/2+t*this._offset.y},this._actualRadius=this._size/2*this.radius,this._itemLabelFontSize=this.itemLabelFontSizeMax*(this._size/500),this._labelMaxWidth=this._actualRadius*(this.itemLabelRadius-this.itemLabelRadiusMax),this.itemLabelAlign==="center"&&(this._labelMaxWidth*=2);for(let a of this._items)this._itemLabelFontSize=Math.min(this._itemLabelFontSize,P(a.label,this.itemLabelFont,this._labelMaxWidth,this._context));this.refresh()}draw(e=0){if(this._frameRequestId=null,this._context===null||this.canvas===null)return;let t=this._context;t.clearRect(0,0,this.canvas.width,this.canvas.height),this.animateRotation(e);let s=this.getItemAngles(this._rotation),n=this.getScaledNumber(this._borderWidth);t.textBaseline="middle",t.textAlign=this.itemLabelAlign,t.font=this._itemLabelFontSize+"px "+this.itemLabelFont;for(let[r,a]of s.entries()){let d=this._items[r],h=new Path2D;h.moveTo(this._center.x,this._center.y),h.arc(this._center.x,this._center.y,this._actualRadius-n/2,m(a.start+-90),m(a.end+-90)),d.path=h}this.drawItemBackgrounds(t,s),this.drawItemImages(t,s),this.drawItemLines(t,s),this.drawItemLabels(t,s),this.drawBorder(t),this.drawImage(t,this._image,!1),this.drawImage(t,this._overlayImage,!0),this.drawDebugPointerLine(t),this._isInitialising=!1}drawItemBackgrounds(e,t=[]){var s;for(let[n,r]of t.entries()){let a=this._items[n];e.fillStyle=(s=a.backgroundColor)!=null?s:this._itemBackgroundColors[n%this._itemBackgroundColors.length],e.fill(a.path)}}drawItemImages(e,t=[]){for(let[s,n]of t.entries()){let r=this._items[s];if(r.image===null)continue;e.save(),e.clip(r.path);let a=n.start+(n.end-n.start)/2;e.translate(this._center.x+Math.cos(m(a+-90))*(this._actualRadius*r.imageRadius),this._center.y+Math.sin(m(a+-90))*(this._actualRadius*r.imageRadius)),e.rotate(m(a+r.imageRotation)),e.globalAlpha=r.imageOpacity;let d=this._size/500*r.image.width*r.imageScale,h=this._size/500*r.image.height*r.imageScale,C=-d/2,_=-h/2;e.drawImage(r.image,C,_,d,h),e.restore()}}drawImage(e,t,s=!1){if(t===null)return;e.translate(this._center.x,this._center.y),s||e.rotate(m(this._rotation));let n=s?this._size:this._size*this.radius,r=-(n/2);e.drawImage(t,r,r,n,n),e.resetTransform()}drawDebugPointerLine(e){!this.debug||(e.translate(this._center.x,this._center.y),e.rotate(m(this._pointerAngle+-90)),e.beginPath(),e.moveTo(0,0),e.lineTo(this._actualRadius*2,0),e.strokeStyle=c.pointerLineColor,e.lineWidth=this.getScaledNumber(2),e.stroke(),e.resetTransform())}drawBorder(e){if(this._borderWidth<=0)return;let t=this.getScaledNumber(this._borderWidth),s=this._borderColor||"transparent";if(e.beginPath(),e.strokeStyle=s,e.lineWidth=t,e.arc(this._center.x,this._center.y,this._actualRadius-t/2,0,2*Math.PI),e.stroke(),this.debug){let n=this.getScaledNumber(1);e.beginPath(),e.strokeStyle=e.strokeStyle=c.labelRadiusColor,e.lineWidth=n,e.arc(this._center.x,this._center.y,this._actualRadius*this.itemLabelRadius,0,2*Math.PI),e.stroke(),e.beginPath(),e.strokeStyle=e.strokeStyle=c.labelRadiusColor,e.lineWidth=n,e.arc(this._center.x,this._center.y,this._actualRadius*this.itemLabelRadiusMax,0,2*Math.PI),e.stroke()}}drawItemLines(e,t=[]){if(this._lineWidth<=0)return;let s=this.getScaledNumber(this._lineWidth),n=this.getScaledNumber(this._borderWidth);e.translate(this._center.x,this._center.y);for(let r of t)e.rotate(m(r.start+-90)),e.beginPath(),e.moveTo(0,0),e.lineTo(this._actualRadius-n,0),e.strokeStyle=this.lineColor,e.lineWidth=s,e.stroke(),e.rotate(-m(r.start+-90));e.resetTransform()}drawItemLabels(e,t=[]){let s=this._itemLabelFontSize*-this.itemLabelBaselineOffset,n=this.getScaledNumber(1),r=this.getScaledNumber(this._itemLabelStrokeWidth*2);for(let[a,d]of t.entries()){let h=this._items[a],C=h.labelColor||this._itemLabelColors[a%this._itemLabelColors.length]||"transparent";if(h.label.trim()===""||C==="transparent")continue;e.save(),e.clip(h.path);let _=d.start+(d.end-d.start)/2;if(e.translate(this._center.x+Math.cos(m(_+-90))*(this._actualRadius*this.itemLabelRadius),this._center.y+Math.sin(m(_+-90))*(this._actualRadius*this.itemLabelRadius)),e.rotate(m(_+-90)),e.rotate(m(this.itemLabelRotation)),this.debug){e.save();let f=0;this.itemLabelAlign==="left"?f=this._labelMaxWidth:this.itemLabelAlign==="center"&&(f=this._labelMaxWidth/2),e.beginPath(),e.moveTo(f,0),e.lineTo(-this._labelMaxWidth+f,0),e.strokeStyle=c.labelBoundingBoxColor,e.lineWidth=n,e.stroke(),e.strokeRect(f,-this._itemLabelFontSize/2,-this._labelMaxWidth,this._itemLabelFontSize),e.restore()}if(this._itemLabelStrokeWidth>0&&(e.lineWidth=r,e.strokeStyle=this._itemLabelStrokeColor,e.lineJoin="round",e.strokeText(h.label,0,s)),e.fillStyle=C,e.fillText(h.label,0,s),this.debug){let f=this.getScaledNumber(2);e.beginPath(),e.arc(0,0,f,0,2*Math.PI),e.fillStyle=c.labelRadiusColor,e.fill()}e.restore()}}drawDebugDragPoints(e){var r;if(!this.debug||!((r=this._dragEvents)!=null&&r.length))return;let t=[...this._dragEvents].reverse(),s=this.getScaledNumber(.5),n=this.getScaledNumber(4);for(let[a,d]of t.entries()){let h=a/this._dragEvents.length*100;e.beginPath(),e.arc(d.x,d.y,n,0,2*Math.PI),e.fillStyle=`hsl(${c.dragPointHue},100%,${h}%)`,e.strokeStyle="#000",e.lineWidth=s,e.fill(),e.stroke()}}animateRotation(e=0){if(this._spinToTimeEnd!==null){if(e>=this._spinToTimeEnd){this.rotation=this._spinToEndRotation,this._spinToTimeEnd=null,this.raiseEvent_onRest();return}let t=this._spinToTimeEnd-this._spinToTimeStart,s=(e-this._spinToTimeStart)/t;s=s<0?0:s;let n=this._spinToEndRotation-this._spinToStartRotation;this.rotation=this._spinToStartRotation+n*this._spinToEasingFunction(s),this.refresh();return}if(this._lastSpinFrameTime!==null){let t=e-this._lastSpinFrameTime;t>0&&(this.rotation+=t/1e3*this._rotationSpeed%360,this._rotationSpeed=this.getRotationSpeedPlusDrag(t),this._rotationSpeed===0?(this.raiseEvent_onRest(),this._lastSpinFrameTime=null):this._lastSpinFrameTime=e),this.refresh();return}}getRotationSpeedPlusDrag(e=0){let t=this._rotationSpeed+this.rotationResistance*(e/1e3)*this._rotationDirection;return this._rotationDirection===1&&t<0||this._rotationDirection===-1&&t>=0?0:t}spin(e=0){if(!u(e))throw new Error("rotationSpeed must be a number");this._dragEvents=[],this.beginSpin(e,"spin")}spinTo(e=0,t=0,s=null){if(!u(e))throw new Error("Error: rotation must be a number");if(!u(t))throw new Error("Error: duration must be a number");this.stop(),this._dragEvents=[],this.animate(e,t,s),this.raiseEvent_onSpin({method:"spinto",targetRotation:e,duration:t})}spinToItem(e=0,t=0,s=!0,n=1,r=1,a=null){this.stop(),this._dragEvents=[];let d=s?this.items[e].getCenterAngle():this.items[e].getRandomAngle(),h=V(this.rotation,d-this._pointerAngle,r);h+=n*360*r,this.animate(h,t,a),this.raiseEvent_onSpin({method:"spintoitem",targetItemIndex:e,targetRotation:h,duration:t})}animate(e,t,s){this._spinToStartRotation=this.rotation,this._spinToEndRotation=e,this._spinToTimeStart=performance.now(),this._spinToTimeEnd=this._spinToTimeStart+t,this._spinToEasingFunction=s||F,this.refresh()}stop(){this._spinToTimeEnd=null,this._rotationSpeed=0,this._lastSpinFrameTime=null}getScaledNumber(e){return e/500*this._size}getActualPixelRatio(){return this._pixelRatio!==0?this._pixelRatio:window.devicePixelRatio}wheelHitTest(e={x:0,y:0}){if(this.canvas===null)return!1;let t=S(e,this.canvas,this.getActualPixelRatio());return T(t,this._center.x,this._center.y,this._actualRadius)}refreshCursor(){if(this.canvas!==null){if(this.isInteractive){if(this.isDragging){this.canvas.style.cursor="grabbing";return}if(this._isCursorOverWheel){this.canvas.style.cursor="grab";return}}this.canvas.style.cursor=""}}getAngleFromCenter(e={x:0,y:0}){return(k(this._center.x,this._center.y,e.x,e.y)+90)%360}getCurrentIndex(){return this._currentIndex}refreshCurrentIndex(e=[]){this._items.length===0&&(this._currentIndex=-1);for(let[t,s]of e.entries())if(!!A(this._pointerAngle,s.start%360,s.end%360)){if(this._currentIndex===t)break;this._currentIndex=t,this._isInitialising||this.raiseEvent_onCurrentIndexChange();break}}getItemAngles(e=0){let t=0;for(let d of this.items)t+=d.weight;let s=360/t,n,r=e,a=[];for(let d of this._items)n=d.weight*s,a.push({start:r,end:r+n}),r+=n;return this._items.length>1&&(a[a.length-1].end=a[0].start+360),a}refresh(){this._frameRequestId===null&&(this._frameRequestId=window.requestAnimationFrame(e=>this.draw(e)))}limitSpeed(e=0,t=0){let s=Math.min(e,t);return Math.max(s,-t)}beginSpin(e=0,t=""){this.stop(),this._rotationSpeed=this.limitSpeed(e,this._rotationSpeedMax),this._lastSpinFrameTime=performance.now(),this._rotationDirection=this._rotationSpeed>=0?1:-1,this._rotationSpeed!==0&&this.raiseEvent_onSpin({method:t,rotationSpeed:this._rotationSpeed,rotationResistance:this._rotationResistance}),this.refresh()}refreshAriaLabel(){if(this.canvas===null)return;this.canvas.setAttribute("role","img");let e=this.items.length>=2?` The wheel has ${this.items.length} slices.`:"";this.canvas.setAttribute("aria-label","An image of a spinning prize wheel."+e)}get borderColor(){return this._borderColor}set borderColor(e){this._borderColor=l({val:e,isValid:typeof e=="string",errorMessage:"Wheel.borderColor must be a string",defaultValue:o.wheel.borderColor}),this.refresh()}get borderWidth(){return this._borderWidth}set borderWidth(e){this._borderWidth=l({val:e,isValid:u(e),errorMessage:"Wheel.borderWidth must be a number",defaultValue:o.wheel.borderWidth}),this.refresh()}get debug(){return this._debug}set debug(e){this._debug=l({val:e,isValid:typeof e=="boolean",errorMessage:"Wheel.debug must be a boolean",defaultValue:o.wheel.debug}),this.refresh()}get image(){return this._image}set image(e){this._image=l({val:e,isValid:e instanceof HTMLImageElement||e===null,errorMessage:"Wheel.image must be a HTMLImageElement or null",defaultValue:o.wheel.image}),this.refresh()}get isInteractive(){return this._isInteractive}set isInteractive(e){this._isInteractive=l({val:e,isValid:typeof e=="boolean",errorMessage:"Wheel.isInteractive must be a boolean",defaultValue:o.wheel.isInteractive}),this.refreshCursor()}get itemBackgroundColors(){return this._itemBackgroundColors}set itemBackgroundColors(e){this._itemBackgroundColors=l({val:e,isValid:Array.isArray(e),errorMessage:"Wheel.itemBackgroundColors must be an array",defaultValue:o.wheel.itemBackgroundColors}),this.refresh()}get itemLabelAlign(){return this._itemLabelAlign}set itemLabelAlign(e){this._itemLabelAlign=l({val:e,isValid:typeof e=="string"&&(e===p.left||e===p.right||e===p.center),errorMessage:"Wheel.itemLabelAlign must be one of Constants.AlignText",defaultValue:o.wheel.itemLabelAlign}),this.resize()}get itemLabelBaselineOffset(){return this._itemLabelBaselineOffset}set itemLabelBaselineOffset(e){this._itemLabelBaselineOffset=l({val:e,isValid:u(e),errorMessage:"Wheel.itemLabelBaselineOffset must be a number",defaultValue:o.wheel.itemLabelBaselineOffset}),this.resize()}get itemLabelColors(){return this._itemLabelColors}set itemLabelColors(e){this._itemLabelColors=l({val:e,isValid:Array.isArray(e),errorMessage:"Wheel.itemLabelColors must be an array",defaultValue:o.wheel.itemLabelColors}),this.refresh()}get itemLabelFont(){return this._itemLabelFont}set itemLabelFont(e){this._itemLabelFont=l({val:e,isValid:typeof e=="string",errorMessage:"Wheel.itemLabelFont must be a string",defaultValue:o.wheel.itemLabelFont}),this.resize()}get itemLabelFontSizeMax(){return this._itemLabelFontSizeMax}set itemLabelFontSizeMax(e){this._itemLabelFontSizeMax=l({val:e,isValid:u(e),errorMessage:"Wheel.itemLabelFontSizeMax must be a number",defaultValue:o.wheel.itemLabelFontSizeMax}),this.resize()}get itemLabelRadius(){return this._itemLabelRadius}set itemLabelRadius(e){this._itemLabelRadius=l({val:e,isValid:u(e),errorMessage:"Wheel.itemLabelRadius must be a number",defaultValue:o.wheel.itemLabelRadius}),this.resize()}get itemLabelRadiusMax(){return this._itemLabelRadiusMax}set itemLabelRadiusMax(e){this._itemLabelRadiusMax=l({val:e,isValid:u(e),errorMessage:"Wheel.itemLabelRadiusMax must be a number",defaultValue:o.wheel.itemLabelRadiusMax}),this.resize()}get itemLabelRotation(){return this._itemLabelRotation}set itemLabelRotation(e){this._itemLabelRotation=l({val:e,isValid:u(e),errorMessage:"Wheel.itemLabelRotation must be a number",defaultValue:o.wheel.itemLabelRotation}),this.refresh()}get itemLabelStrokeColor(){return this._itemLabelStrokeColor}set itemLabelStrokeColor(e){this._itemLabelStrokeColor=l({val:e,isValid:typeof e=="string",errorMessage:"Wheel.itemLabelStrokeColor must be a string",defaultValue:o.wheel.itemLabelStrokeColor}),this.refresh()}get itemLabelStrokeWidth(){return this._itemLabelStrokeWidth}set itemLabelStrokeWidth(e){this._itemLabelStrokeWidth=l({val:e,isValid:u(e),errorMessage:"Wheel.itemLabelStrokeWidth must be a number",defaultValue:o.wheel.itemLabelStrokeWidth}),this.refresh()}get items(){return this._items}set items(e){this._items=l({val:e,isValid:Array.isArray(e),errorMessage:"Wheel.items must be an array of Items",defaultValue:o.wheel.items,action:()=>{let t=[];for(let s of e)t.push(new y(this,s));return t}}),this.refreshAriaLabel(),this.refreshCurrentIndex(this.getItemAngles(this._rotation)),this.resize()}get lineColor(){return this._lineColor}set lineColor(e){this._lineColor=l({val:e,isValid:typeof e=="string",errorMessage:"Wheel.lineColor must be a string",defaultValue:o.wheel.lineColor}),this.refresh()}get lineWidth(){return this._lineWidth}set lineWidth(e){this._lineWidth=l({val:e,isValid:u(e),errorMessage:"Wheel.lineWidth must be a number",defaultValue:o.wheel.lineWidth}),this.refresh()}get offset(){return this._offset}set offset(e){this._offset=l({val:e,isValid:b(e),errorMessage:"Wheel.offset must be an object",defaultValue:o.wheel.offset}),this.resize()}get onCurrentIndexChange(){return this._onCurrentIndexChange}set onCurrentIndexChange(e){this._onCurrentIndexChange=l({val:e,isValid:typeof e=="function"||e===null,errorMessage:"Wheel.onCurrentIndexChange must be a function or null",defaultValue:o.wheel.onCurrentIndexChange})}get onRest(){return this._onRest}set onRest(e){this._onRest=l({val:e,isValid:typeof e=="function"||e===null,errorMessage:"Wheel.onRest must be a function or null",defaultValue:o.wheel.onRest})}get onSpin(){return this._onSpin}set onSpin(e){this._onSpin=l({val:e,isValid:typeof e=="function"||e===null,errorMessage:"Wheel.onSpin must be a function or null",defaultValue:o.wheel.onSpin})}get overlayImage(){return this._overlayImage}set overlayImage(e){this._overlayImage=l({val:e,isValid:e instanceof HTMLImageElement||e===null,errorMessage:"Wheel.overlayImage must be a HTMLImageElement or null",defaultValue:o.wheel.overlayImage}),this.refresh()}get pixelRatio(){return this._pixelRatio}set pixelRatio(e){this._pixelRatio=l({val:e,isValid:u(e),errorMessage:"Wheel.pixelRatio must be a number",defaultValue:o.wheel.pixelRatio}),this._dragEvents=[],this.resize()}get pointerAngle(){return this._pointerAngle}set pointerAngle(e){this._pointerAngle=l({val:e,isValid:u(e)&&e>=0,errorMessage:"Wheel.pointerAngle must be a number between 0 and 360",defaultValue:o.wheel.pointerAngle,action:()=>e%360}),this.debug&&this.refresh()}get radius(){return this._radius}set radius(e){this._radius=l({val:e,isValid:u(e),errorMessage:"Wheel.radius must be a number",defaultValue:o.wheel.radius}),this.resize()}get rotation(){return this._rotation}set rotation(e){this._rotation=l({val:e,isValid:u(e),errorMessage:"Wheel.rotation must be a number",defaultValue:o.wheel.rotation}),this.refreshCurrentIndex(this.getItemAngles(this._rotation)),this.refresh()}get rotationResistance(){return this._rotationResistance}set rotationResistance(e){this._rotationResistance=l({val:e,isValid:u(e),errorMessage:"Wheel.rotationResistance must be a number",defaultValue:o.wheel.rotationResistance})}get rotationSpeed(){return this._rotationSpeed}get rotationSpeedMax(){return this._rotationSpeedMax}set rotationSpeedMax(e){this._rotationSpeedMax=l({val:e,isValid:u(e)&&e>=0,errorMessage:"Wheel.rotationSpeedMax must be a number >= 0",defaultValue:o.wheel.rotationSpeedMax})}dragStart(e={x:0,y:0}){if(this.canvas===null)return;let t=S(e,this.canvas,this.getActualPixelRatio());this.isDragging=!0,this.stop(),this._dragEvents=[{distance:0,x:t.x,y:t.y,now:performance.now()}],this.refreshCursor()}dragMove(e={x:0,y:0}){if(this.canvas===null)return;let t=S(e,this.canvas,this.getActualPixelRatio()),s=this.getAngleFromCenter(t),n=this._dragEvents[0],r=this.getAngleFromCenter(n),a=z(r,s);this._dragEvents.unshift({distance:a,x:t.x,y:t.y,now:performance.now()}),this.debug&&this._dragEvents.length>=40&&this._dragEvents.pop(),this.rotation+=a}dragEnd(){this.isDragging=!1;let e=0,t=performance.now();for(let[s,n]of this._dragEvents.entries()){if(!this.isDragEventTooOld(t,n)){e+=n.distance;continue}this._dragEvents.length=s,this.debug&&this.refresh();break}this.refreshCursor(),e!==0&&this.beginSpin(e*(1e3/250),"interact")}isDragEventTooOld(e=0,t={}){return e-t.now>250}raiseEvent_onCurrentIndexChange(e={}){var t;(t=this.onCurrentIndexChange)==null||t.call(this,v({type:"currentIndexChange",currentIndex:this._currentIndex},e))}raiseEvent_onRest(e={}){var t;(t=this.onRest)==null||t.call(this,v({type:"rest",currentIndex:this._currentIndex,rotation:this._rotation},e))}raiseEvent_onSpin(e={}){var t;(t=this.onSpin)==null||t.call(this,v({type:"spin"},e))}};return Q(ee);})();
 </script>
 
-<script>
-(function () {
-  'use strict';
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="app.js"></script>
 
-  // ---------- data ----------
-  var DESTS = [
-    { name: '蘇州', time: '高鐵約30分', img: 'suzhou', cap: '拙政園', lon: 120.58, lat: 31.30,
-      intro: '高鐵半小時就到的園林之城——拙政園與獅子林是江南造園的極致，平江路、山塘街的水巷裡藏著最老的姑蘇，金雞湖畔則是完全現代的另一張臉',
-      kw: ['拙政園', '獅子林', '平江路', '山塘街', '虎丘', '蘇州博物館', '蟹粉小籠'] },
-    { name: '杭州', time: '高鐵約1小時', img: 'hangzhou', cap: '西湖・三潭印月', lon: 120.15, lat: 30.27,
-      intro: '西湖十景撐起半座城的名聲——蘇堤騎車、雷峰塔看夕照、靈隱寺聽鐘，再往西是西溪濕地的蘆葦水道，配一杯龍井把節奏放慢',
-      kw: ['西湖', '靈隱寺', '雷峰塔', '西溪濕地', '河坊街', '龍井茶'] },
-    { name: '無錫', time: '高鐵約45分', img: 'wuxi', cap: '黿頭渚', lon: 120.30, lat: 31.57,
-      intro: '太湖絕佳處在黿頭渚，春天櫻花季是長三角最壯觀的花海；靈山大佛與拈花灣做足禪意，清名橋古運河夜景是老無錫的水弄堂',
-      kw: ['黿頭渚', '靈山大佛', '拈花灣', '清名橋', '太湖', '醬排骨'] },
-    { name: '南京', time: '高鐵約1.5小時', img: 'nanjing', cap: '中山陵', lon: 118.80, lat: 32.06,
-      intro: '六朝古都的厚重寫在中山陵石階與明孝陵神道上；夫子廟秦淮河夜遊、老門東小吃、玄武湖環湖——歷史感與生活感在這裡並不衝突',
-      kw: ['中山陵', '明孝陵', '夫子廟', '秦淮河', '老門東', '玄武湖', '鴨血粉絲湯'] },
-    { name: '嘉興', time: '高鐵約40分', img: 'jiaxing', cap: '南湖湖心島', lon: 120.75, lat: 30.75,
-      intro: '南湖煙雨樓看湖光、月河老街喫茶聽評彈，節奏比蘇杭更鬆；殺手鐧是肉粽與醬鴨麵，半天走完，適合順路的輕鬆一日遊',
-      kw: ['南湖', '煙雨樓', '月河老街', '西塘', '嘉興粽子'] },
-    { name: '烏鎮', time: '高鐵＋接駁約1.5小時', img: 'wuzhen', cap: '烏鎮西柵', lon: 120.49, lat: 30.74,
-      intro: '枕水人家的標本級水鄉——東柵保留原味生活，西柵夜景是江南最會打光的一段河道；清晨無人時的石橋與搖櫓船才是正確打開方式',
-      kw: ['西柵', '東柵', '搖櫓船', '水上集市', '木心美術館', '西柵夜景'] },
-    { name: '紹興', time: '高鐵約1.5小時', img: 'shaoxing', cap: '沈園', lon: 120.58, lat: 30.00,
-      intro: '百草園與三味書屋就在魯迅故里步行圈內；沈園聽一段陸游與唐琬，倉橋直街一碗黃酒配茴香豆，再坐一趟烏篷船——整座城就是攤開的課本',
-      kw: ['魯迅故里', '沈園', '倉橋直街', '烏篷船', '黃酒', '茴香豆'] },
-    { name: '寧波', time: '高鐵約2小時', img: 'ningbo', cap: '天一閣', lon: 121.55, lat: 29.87,
-      intro: '天一閣是中國現存最古老的藏書樓，老外灘比上海外灘更早開埠；東錢湖騎行、南塘老街覓食，再加一碗豬油湯圓——步調不快，樣樣扎實',
-      kw: ['天一閣', '老外灘', '東錢湖', '南塘老街', '豬油湯圓'] },
-    { name: '常州', time: '高鐵約1小時', img: 'changzhou', cap: '南山竹海', lon: 119.95, lat: 31.78,
-      intro: '中華恐龍園是長三角親子首選，天目湖與南山竹海適合大人放空；回城逛青果巷歷史街區，嚐一碗銀絲麵——帶小孩的週末就選這裡',
-      kw: ['中華恐龍園', '天目湖', '南山竹海', '青果巷', '銀絲麵'] },
-    { name: '南通', time: '高鐵約1.5小時', img: 'nantong', cap: '南通博物苑', lon: 120.89, lat: 31.98,
-      intro: '長江與黃海交匯的低調城市——濠河是保存最完整的古護城河之一，狼山號稱江海第一山，張謇留下的南通博物苑是中國第一座公共博物館',
-      kw: ['濠河', '狼山', '南通博物苑', '寺街', '藍印花布'] },
-    { name: '揚州', time: '高鐵約2.5小時', img: 'yangzhou', cap: '瘦西湖・五亭橋', lon: 119.42, lat: 32.39,
-      intro: '「煙花三月下揚州」不是虛名——瘦西湖五亭橋、個園四季假山、東關街鹽商宅邸，配上冶春或富春的一頓早茶，把「慢」過成正經事',
-      kw: ['瘦西湖', '個園', '何園', '東關街', '揚州早茶', '五亭橋'] },
-    { name: '莫干山', time: '高鐵＋接駁約2小時', img: 'moganshan', cap: '莫干山', lon: 119.87, lat: 30.60,
-      intro: '上海人的週末山居首選——竹海環抱的民宿從裸心堡到設計旅宿應有盡有：白天山徑騎行避暑，晚上壁爐星空，發呆本身就是行程',
-      kw: ['裸心堡', '竹海', '設計民宿', '山頂日落', '騎行', '避暑'] },
-    { name: '千島湖', time: '高鐵約2.5小時', img: 'qiandaohu', cap: '千島湖', lon: 119.04, lat: 29.60,
-      intro: '1078 座島嶼撒在一湖碧水裡——中心湖區遊船跳島、環湖公路騎行是招牌玩法，一鍋魚頭湯是必吃，空氣和水質都是長三角頂級',
-      kw: ['中心湖區', '遊船跳島', '環湖騎行', '梅峰島', '魚頭湯'] },
-    { name: '黃山', time: '高鐵約3小時', img: 'huangshan', cap: '黃山', lon: 118.34, lat: 29.71,
-      intro: '「五嶽歸來不看山，黃山歸來不看嶽」——迎客松、光明頂、西海大峽谷與雲海是一生要看一次的畫面；山下再留半天給宏村白牆黛瓦，行程最遠，回報也最大',
-      kw: ['迎客松', '光明頂', '西海大峽谷', '雲海', '溫泉', '宏村'] }
-  ];
-
-  // city photos are injected at build time as data URIs: { key: 'data:image/jpeg;base64,...' }
-  var CITY_IMG = {/*__CITY_IMG__*/};
-
-  var INK = '#29211a', CREAM = '#faf2df', VERM = '#c2402c', TEAL = '#20565a', OCHRE = '#d6992f', GOLD = '#e4b84c';
-  var COLORED = [VERM, TEAL, OCHRE];
-
-  function wedgeBg(i) {
-    return (i % 2 === 0) ? COLORED[(i / 2) % 3] : CREAM;
-  }
-  function wedgeFg(i) {
-    if (i % 2 === 1) return INK;            // cream wedge
-    return wedgeBg(i) === OCHRE ? INK : '#fbf4e2';
-  }
-
-  var LABEL_FONT = "'Noto Serif TC', 'Songti TC', serif";
-  var FONT_PROBE = '蘇州杭無錫南京嘉興烏鎮紹寧波常通揚莫干山千島湖黃轉';
-  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // ---------- dom ----------
-  var rim = document.getElementById('rim');
-  var wheelWindow = document.getElementById('wheelWindow');
-  var hubBtn = document.getElementById('hubBtn');
-  var ctaBtn = document.getElementById('ctaBtn');
-  var pointerEl = document.getElementById('pointer');
-  var stampEl = document.getElementById('stamp');
-  var resultBody = document.getElementById('resultBody');
-  var destList = document.getElementById('destList');
-
-  // ---------- destination list ----------
-  DESTS.forEach(function (d, i) {
-    var li = document.createElement('li');
-    li.id = 'dest-' + i;
-    li.innerHTML =
-      '<i class="dot" style="background:' + wedgeBg(i) + '"></i>' +
-      '<span class="d-name">' + d.name + '</span>' +
-      '<span class="leader"></span>' +
-      '<span class="d-time">' + d.time + '</span>';
-    destList.appendChild(li);
-  });
-
-  // ---------- gold studs on the rim ----------
-  var STUD_COUNT = 14;
-  var studs = [];
-  for (var s = 0; s < STUD_COUNT; s++) {
-    var el = document.createElement('i');
-    el.className = 'stud';
-    rim.appendChild(el);
-    studs.push(el);
-  }
-  function layoutStuds() {
-    var w = rim.clientWidth;
-    if (!w) return;
-    var pad = parseFloat(getComputedStyle(rim).paddingTop) || 13;
-    var r = (w / 2) - (pad / 2);
-    var rPct = (r / w) * 100;
-    studs.forEach(function (el, i) {
-      var a = (-90 + i * (360 / STUD_COUNT)) * Math.PI / 180;
-      el.style.left = (50 + Math.cos(a) * rPct) + '%';
-      el.style.top = (50 + Math.sin(a) * rPct) + '%';
-    });
-  }
-  layoutStuds();
-  if (window.ResizeObserver) new ResizeObserver(layoutStuds).observe(rim);
-  else window.addEventListener('resize', layoutStuds);
-
-  // ---------- result card states ----------
-  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
-
-  function renderIdle() {
-    stampEl.classList.remove('on');
-    resultBody.innerHTML =
-      '<span class="chip">尚未開獎</span>' +
-      '<p class="verdict">這週末，去哪裡？</p>' +
-      '<p class="whisper">十四選一——點轉盤中央，或按上面的紅按鈕</p>';
-  }
-
-  function renderSpinning() {
-    stampEl.classList.remove('on');
-    resultBody.innerHTML =
-      '<span class="chip hot">命運運轉中</span>' +
-      '<p class="verdict">⋯⋯</p>' +
-      '<p class="live">指針正掠過 <b id="liveName">—</b></p>';
-  }
-
-  function renderResult(i) {
-    var d = DESTS[i];
-    var src = CITY_IMG[d.img];
-    var photo = src
-      ? '<img src="' + src + '" alt="' + esc(d.cap) + '">'
-      : '<div class="photo-fallback">' + esc(d.cap) + '</div>';
-    resultBody.innerHTML =
-      '<span class="chip hot">本週判決</span>' +
-      '<p class="verdict">這週末就去 <span class="win">' + esc(d.name) + '</span>！</p>' +
-      '<div class="timepill"><span class="tp-label">交通</span>' + esc(d.time) + '</div>' +
-      '<div class="card-cols">' +
-        '<div class="photo-wrap">' + photo + '<span class="photo-cap">' + esc(d.cap) + '</span></div>' +
-        '<p class="intro">' + esc(d.intro) + '</p>' +
-      '</div>' +
-      '<div class="kw-row">' + d.kw.map(function (k) {
-        return '<span class="kw">' + esc(k) + '</span>';
-      }).join('') + '</div>' +
-      '<p class="whisper">不滿意的話，再轉一次，命運不介意</p>';
-    stampEl.classList.remove('on');
-    void stampEl.offsetWidth; // restart slam animation
-    stampEl.classList.add('on');
-  }
-
-  function highlight(i) {
-    for (var k = 0; k < DESTS.length; k++) {
-      document.getElementById('dest-' + k).classList.toggle('is-hit', k === i);
-    }
-  }
-
-  // ---------- confetti ----------
-  function confetti() {
-    if (RM || !document.body.animate) return;
-    var box = pointerEl.getBoundingClientRect();
-    var ox = box.left + box.width / 2;
-    var oy = box.top + box.height / 2;
-    var colors = [VERM, TEAL, OCHRE, GOLD, INK];
-    for (var i = 0; i < 46; i++) {
-      var p = document.createElement('i');
-      var c = colors[i % colors.length];
-      var sz = 5 + Math.random() * 6;
-      p.style.cssText = 'position:fixed;left:' + ox + 'px;top:' + oy + 'px;width:' + sz * 0.7 +
-        'px;height:' + sz + 'px;background:' + c + ';z-index:99;pointer-events:none;border-radius:1.5px;';
-      document.body.appendChild(p);
-      var dx = (Math.random() - 0.5) * 340;
-      var rot = (Math.random() - 0.5) * 1080;
-      var anim = p.animate([
-        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
-        { transform: 'translate(' + dx * 0.55 + 'px,' + (-70 - Math.random() * 110) + 'px) rotate(' + rot * 0.4 + 'deg)', opacity: 1, offset: 0.32 },
-        { transform: 'translate(' + dx + 'px,' + (190 + Math.random() * 200) + 'px) rotate(' + rot + 'deg)', opacity: 0 }
-      ], { duration: 950 + Math.random() * 650, easing: 'cubic-bezier(.16,.6,.4,1)' });
-      anim.onfinish = (function (node) { return function () { node.remove(); }; })(p);
-    }
-  }
-
-  // ---------- wheel ----------
-  var wheel = null;
-  var spinning = false;
-
-  function easeOutQuart(n) { return 1 - Math.pow(1 - n, 4); }
-
-  function tickPointer() {
-    pointerEl.classList.remove('tick');
-    void pointerEl.offsetWidth;
-    pointerEl.classList.add('tick');
-  }
-
-  function onRest(e) {
-    spinning = false;
-    hubBtn.disabled = false;
-    ctaBtn.disabled = false;
-    ctaBtn.textContent = '再轉一次';
-    renderResult(e.currentIndex);
-    highlight(e.currentIndex);
-    confetti();
-  }
-
-  function initWheel() {
-    wheel = new spinWheel.Wheel(wheelWindow, {
-      items: DESTS.map(function (d, i) {
-        return { label: d.name, backgroundColor: wedgeBg(i), labelColor: wedgeFg(i) };
-      }),
-      isInteractive: false,
-      radius: 1,
-      borderColor: INK,
-      borderWidth: 4,
-      lineColor: INK,
-      lineWidth: 2.5,
-      itemLabelFont: LABEL_FONT,
-      itemLabelAlign: 'right',
-      itemLabelRadius: 0.93,
-      itemLabelRadiusMax: 0.44,
-      itemLabelFontSizeMax: 30,
-      itemLabelBaselineOffset: -0.07,
-      pointerAngle: 0,
-      onRest: onRest,
-      onCurrentIndexChange: function (e) {
-        tickPointer();
-        var live = document.getElementById('liveName');
-        if (live && spinning) live.textContent = DESTS[e.currentIndex].name;
-      }
-    });
-  }
-
-  function spin() {
-    if (spinning || !wheel) return;
-    spinning = true;
-    hubBtn.disabled = true;
-    ctaBtn.disabled = true;
-    ctaBtn.textContent = '命運運轉中⋯';
-    renderSpinning();
-    var target = Math.floor(Math.random() * DESTS.length);
-    var duration = RM ? 900 : 4300 + Math.random() * 900;
-    var revs = RM ? 1 : 4 + Math.floor(Math.random() * 3);
-    wheel.spinToItem(target, duration, false, revs, 1, easeOutQuart);
-  }
-
-  rim.addEventListener('click', spin);
-  ctaBtn.addEventListener('click', spin);
-
-  // ---------- boot (wait for the CJK webfont so canvas labels render right) ----------
-  function whenFonts() {
-    if (!document.fonts || !document.fonts.load) return Promise.resolve();
-    return Promise.race([
-      Promise.all([
-        document.fonts.load('900 30px "Noto Serif TC"', FONT_PROBE),
-        document.fonts.load('700 16px "Noto Sans TC"', FONT_PROBE)
-      ]),
-      new Promise(function (r) { setTimeout(r, 2400); })
-    ]);
-  }
-  whenFonts().then(initWheel, initWheel);
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(function () {
-      if (wheel) wheel.itemLabelFont = LABEL_FONT; // setter triggers a redraw once fonts are in
-    });
-  }
-})();
-</script>
