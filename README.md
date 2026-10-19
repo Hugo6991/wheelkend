@@ -5,6 +5,18 @@
 
 線上版：https://wheelkend.pages.dev
 
+## 長什麼樣
+
+<img src="assets/readme/hero-wheel.png" alt="轉盤主畫面：十四個目的地，點一下交給命運" width="800">
+
+轉到哪，就出一張圖文卡——實景照片、車程、精簡介紹、景點關鍵字：
+
+<img src="assets/readme/result-card.png" alt="結果卡：這週末就去寧波，高鐵約2小時" width="640">
+
+地圖同步飛到目的地：
+
+<img src="assets/readme/map.png" alt="目的地版圖：地圖自動飛到寧波並彈出車程" width="800">
+
 ## 概念
 
 「週末想出門，但選擇困難」是唯一要解決的問題。做法刻意簡單：
